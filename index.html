@@ -3,150 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Badminton Pro Shuffler</title>
+    <title>Smart Badminton Manager</title>
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --danger: #d93025; --bg: #f0f2f5; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; position: relative; overflow: hidden; }
+        :root { --primary: #1a73e8; --success: #34a853; --danger: #d93025; --bg: #f8f9fa; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; color: #3c4043; }
+        .container { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 500px; position: relative; }
         
-        h2 { text-align: center; color: #202124; margin-bottom: 20px; font-weight: 800; }
-        
-        /* Shuffling Overlay Animation */
-        #loader {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); display: none;
-            flex-direction: column; justify-content: center; align-items: center; z-index: 10;
+        /* High-Five Animation Overlay */
+        #highFiveOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); display: none;
+            justify-content: center; align-items: center; z-index: 100;
+            backdrop-filter: blur(4px);
         }
-        .shuttle { font-size: 50px; animation: bounce 0.5s infinite alternate; }
-        @keyframes bounce { from { transform: translateY(0) rotate(0deg); } to { transform: translateY(-20px) rotate(20deg); } }
+        .animation-box {
+            background: white; padding: 40px; border-radius: 30px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; overflow: hidden;
+        }
+        .players-wrap { display: flex; justify-content: center; gap: 20px; font-size: 60px; margin-bottom: 15px; }
+        
+        /* High Five Movement */
+        .player-left { animation: slideRight 0.6s forwards ease-out; }
+        .player-right { animation: slideLeft 0.6s forwards ease-out; }
+        @keyframes slideRight { 0% { transform: translateX(-100px); } 100% { transform: translateX(0px); } }
+        @keyframes slideLeft { 0% { transform: translateX(100px); } 100% { transform: translateX(0px); } }
+        
+        .sparkle { 
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 40px; animation: pop 0.3s 0.6s both; opacity: 0;
+        }
+        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; } }
 
-        /* Input Styles */
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { flex-grow: 1; padding: 15px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--primary); }
-        .btn-add { background: var(--success); color: white; border: none; border-radius: 12px; padding: 0 20px; font-weight: bold; }
-
-        /* Court Styles */
-        .btn-shuffle { background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1em; font-weight: bold; margin-bottom: 20px; cursor: pointer; }
-        .court-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .court { background: #f8faff; padding: 15px; border-radius: 15px; border: 2px solid #e8f0fe; min-height: 100px; text-align: center; opacity: 1; transition: opacity 0.5s ease-in; }
-        .court h3 { margin: 0 0 10px 0; font-size: 0.7em; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
-        .match-text { font-weight: bold; font-size: 1em; line-height: 1.5; color: #3c4043; }
-        .vs { color: var(--danger); font-size: 0.7em; display: block; margin: 2px 0; }
-
-        /* List Styles */
-        .player-list-section { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
-        .player-item { background: #fff; margin-bottom: 8px; padding: 12px 15px; border-radius: 10px; display: flex; justify-content: space-between; border: 1px solid #f0f0f0; animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-        .remove-btn { color: #bdc1c6; cursor: pointer; }
-        .clear-link { display: block; text-align: center; margin-top: 20px; color: #9aa0a6; font-size: 0.8em; text-decoration: none; cursor: pointer; }
+        /* Existing Styles */
+        .score-input { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 5px; margin-top: 10px; align-items: center; }
+        .score-input input { padding: 5px; text-align: center; border: 1px solid #ddd; border-radius: 4px; width: 40px; }
+        .btn-save-score { background: #eee; border: none; padding: 8px; border-radius: 5px; cursor: pointer; margin-top: 8px; width: 100%; font-weight: bold; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        input[type="text"] { padding: 12px; border: 2px solid #eee; border-radius: 10px; outline: none; }
+        .btn-add { background: var(--success); color: white; border: none; border-radius: 10px; padding: 10px; font-weight: bold; }
+        .btn-shuffle { background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1.1em; font-weight: bold; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .court { background: #fff; padding: 15px; border-radius: 15px; border: 2px solid #e8f0fe; text-align: center; margin-bottom: 10px; }
+        .player-tag { display: inline-block; background: #e8f0fe; padding: 4px 10px; border-radius: 8px; font-size: 0.9em; margin: 3px; font-weight: 600; }
+        .player-item { display: flex; justify-content: space-between; background: #fff; padding: 10px; margin-bottom: 5px; border-radius: 8px; border: 1px solid #eee; }
+        #loader { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); display:none; flex-direction:column; justify-content:center; align-items:center; z-index:20; border-radius:20px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="loader">
-        <div class="shuttle">🏸</div>
-        <p><b>Shuffling Players...</b></p>
+<div id="highFiveOverlay">
+    <div class="animation-box">
+        <div class="sparkle">✨</div>
+        <div class="players-wrap">
+            <div class="player-left">🧑‍🏸</div>
+            <div class="player-right">🏸👧</div>
+        </div>
+        <h3 style="margin:0; color:#1a73e8;">Matches Ready!</h3>
+        <p style="margin:5px 0 0 0; font-size:0.9em; color:#666;">Play hard, have fun!</p>
     </div>
+</div>
 
-    <h2>Match Maker</h2>
+<div class="container">
+    <div id="loader">🏸<br><b>Balancing Match...</b></div>
+    <h2>Badminton Smart Match</h2>
     
     <div class="input-group">
-        <input type="text" id="nameInput" placeholder="Add Player Name" autocomplete="off">
-        <button class="btn-add" onclick="addPlayer()">Add</button>
+        <input type="text" id="nameInput" placeholder="Names (e.g. Ali, Bob, Ken)">
+        <button class="btn-add" onclick="addPlayers()">Add to Queue</button>
     </div>
 
-    <button class="btn-shuffle" onclick="startShuffle()">Shuffle Courts</button>
+    <button class="btn-shuffle" onclick="startShuffle()">Smart Shuffle</button>
 
     <div class="court-grid">
-        <div class="court" id="c1box">
-            <h3>Court 1</h3>
-            <div id="court1" class="match-text">--</div>
+        <div id="court1Box" class="court">
+            <small><b>COURT 1</b></small>
+            <div id="c1_display" style="margin:10px 0;">--</div>
+            <div id="c1_scores" style="display:none;">
+                <div class="score-input">
+                    <input type="number" id="c1r1a" placeholder="G1"> <span>-</span> <input type="number" id="c1r1b" placeholder="G1">
+                    <input type="number" id="c1r2a" placeholder="G2"> <span>-</span> <input type="number" id="c1r2b" placeholder="G2">
+                    <input type="number" id="c1r3a" placeholder="G3"> <span>-</span> <input type="number" id="c1r3b" placeholder="G3">
+                </div>
+                <button class="btn-save-score" onclick="submitScore(1)">Submit Score</button>
+            </div>
         </div>
-        <div class="court" id="c2box">
-            <h3>Court 2</h3>
-            <div id="court2" class="match-text">--</div>
+        
+        <div id="court2Box" class="court">
+            <small><b>COURT 2</b></small>
+            <div id="c2_display" style="margin:10px 0;">--</div>
+            <div id="c2_scores" style="display:none;">
+                <div class="score-input">
+                    <input type="number" id="c2r1a" placeholder="G1"> <span>-</span> <input type="number" id="c2r1b" placeholder="G1">
+                    <input type="number" id="c2r2a" placeholder="G2"> <span>-</span> <input type="number" id="c2r2b" placeholder="G2">
+                    <input type="number" id="c2r3a" placeholder="G3"> <span>-</span> <input type="number" id="c2r3b" placeholder="G3">
+                </div>
+                <button class="btn-save-score" onclick="submitScore(2)">Submit Score</button>
+            </div>
         </div>
     </div>
 
-    <div class="player-list-section">
-        <div style="display:flex; justify-content: space-between; margin-bottom: 10px;">
-            <small><b>PLAYERS</b></small>
-            <small id="count">0</small>
-        </div>
+    <div style="margin-top:20px;">
+        <small><b>LEADERBOARD (Points)</b></small>
         <div id="playerPool"></div>
-        <span class="clear-link" onclick="clearAll()">Clear All Players</span>
+        <button onclick="clearData()" style="width:100%; background:none; border:none; color:grey; font-size:0.7em; cursor:pointer; margin-top:15px; text-decoration: underline;">Reset Session</button>
     </div>
 </div>
 
 <script>
-    let players = JSON.parse(localStorage.getItem('badmintonPlayers')) || [];
+    let players = JSON.parse(localStorage.getItem('badmintonData')) || [];
+    let activeMatches = { 1: null, 2: null };
+
     window.onload = renderPlayers;
 
-    document.getElementById('nameInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') addPlayer(); });
-
-    function addPlayer() {
+    function addPlayers() {
         const input = document.getElementById('nameInput');
-        const name = input.value.trim();
-        if (name) {
-            players.push(name);
-            input.value = '';
-            save();
-            renderPlayers();
-        }
+        const names = input.value.split(',').map(n => n.trim()).filter(n => n !== "");
+        names.forEach(n => {
+            if (!players.find(p => p.name === n)) {
+                players.push({ name: n, points: 0 });
+            }
+        });
+        input.value = '';
+        save();
+        renderPlayers();
     }
 
-    function removePlayer(i) { players.splice(i, 1); save(); renderPlayers(); }
-    function save() { localStorage.setItem('badmintonPlayers', JSON.stringify(players)); }
+    function save() { localStorage.setItem('badmintonData', JSON.stringify(players)); }
 
     function renderPlayers() {
-        document.getElementById('count').innerText = players.length;
-        document.getElementById('playerPool').innerHTML = players.map((p, i) => `
-            <div class="player-item"><span>${p}</span> <span class="remove-btn" onclick="removePlayer(${i})">✕</span></div>
-        `).reverse().join('');
+        const sorted = [...players].sort((a,b) => b.points - a.points);
+        document.getElementById('playerPool').innerHTML = sorted.map((p) => `
+            <div class="player-item">
+                <span>${p.name} <b style="color:var(--primary); margin-left:10px;">${p.points}</b></span>
+                <span style="color:#ddd; cursor:pointer" onclick="removePlayer('${p.name}')">✕</span>
+            </div>
+        `).join('');
+    }
+
+    function removePlayer(name) {
+        players = players.filter(p => p.name !== name);
+        save(); renderPlayers();
     }
 
     function startShuffle() {
-        if (players.length < 4) return alert("Add at least 4 players!");
+        if (players.length < 4) return alert("Need 4 players!");
+        document.getElementById('loader').style.display = 'flex';
         
-        // Show Animation
-        const loader = document.getElementById('loader');
-        const c1 = document.getElementById('c1box');
-        const c2 = document.getElementById('c2box');
-        
-        loader.style.display = 'flex';
-        c1.style.opacity = '0';
-        c2.style.opacity = '0';
-
-        // Wait 1.5 seconds then show results
         setTimeout(() => {
-            generateCourts();
-            loader.style.display = 'none';
-            c1.style.opacity = '1';
-            c2.style.opacity = '1';
-        }, 1500);
+            let pool = [...players].sort((a,b) => b.points - a.points);
+            const match1 = pool.slice(0, 4);
+            const match2 = pool.length >= 8 ? pool.slice(4, 8) : null;
+
+            assignMatch(1, match1);
+            if (match2) assignMatch(2, match2);
+            
+            document.getElementById('loader').style.display = 'none';
+            triggerHighFive(); // Launch the cute animation
+        }, 1200);
     }
 
-    function generateCourts() {
-        let s = [...players].sort(() => Math.random() - 0.5);
-        
-        document.getElementById('court1').innerHTML = `${s[0]} & ${s[1]} <span class="vs">VS</span> ${s[2]} & ${s[3]}`;
-        
-        if (s.length >= 8) {
-            document.getElementById('court2').innerHTML = `${s[4]} & ${s[5]} <span class="vs">VS</span> ${s[6]} & ${s[7]}`;
-        } else {
-            document.getElementById('court2').innerHTML = `<span style="color:#bdc3c7; font-weight:normal;">Waiting...</span>`;
-        }
+    function triggerHighFive() {
+        const overlay = document.getElementById('highFiveOverlay');
+        overlay.style.display = 'flex';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 2200); // Popup stays for 2.2 seconds
     }
 
-    function clearAll() {
-        if (confirm("Clear player list?")) {
-            players = []; save(); renderPlayers();
-            document.getElementById('court1').innerText = "--";
-            document.getElementById('court2').innerText = "--";
-        }
+    function assignMatch(courtNum, pList) {
+        // Balancing Team A (1st, 4th) vs Team B (2nd, 3rd)
+        const teamA = [pList[0], pList[3]];
+        const teamB = [pList[1], pList[2]];
+        activeMatches[courtNum] = { teamA, teamB };
+        
+        document.getElementById(`c${courtNum}_display`).innerHTML = `
+            <div class="player-tag">${teamA[0].name}</div> & <div class="player-tag">${teamA[1].name}</div>
+            <div style="color:red; font-size:0.7em; margin:5px 0; font-weight:bold;">VS</div>
+            <div class="player-tag">${teamB[0].name}</div> & <div class="player-tag">${teamB[1].name}</div>
+        `;
+        document.getElementById(`c${courtNum}_scores`).style.display = 'block';
     }
+
+    function submitScore(courtNum) {
+        const match = activeMatches[courtNum];
+        let aWins = 0, bWins = 0;
+
+        for (let r = 1; r <= 3; r++) {
+            const a = parseInt(document.getElementById(`c${courtNum}r${r}a`).value) || 0;
+            const b = parseInt(document.getElementById(`c${courtNum}r${r}b`).value) || 0;
+            if (a === 0 && b === 0) continue; 
+            if (a > b) aWins++; else if (b > a) bWins++;
+        }
+
+        if (aWins === 0 && bWins === 0) return alert("Enter some scores first!");
+
+        const winnerTeam = aWins > bWins ? 'teamA' : 'teamB';
+        match.teamA.forEach(p => { 
+            let idx = players.findIndex(pl => pl.name === p.name);
+            players[idx].points += (winnerTeam === 'teamA' ? 3 : 1);
+        });
+        match.teamB.forEach(p => { 
+            let idx = players.findIndex(pl => pl.name === p.name);
+            players[idx].points += (winnerTeam === 'teamB' ? 3 : 1);
+        });
+
+        document.getElementById(`c${courtNum}_scores`).style.display = 'none';
+        // Reset inputs
+        for(let r=1; r<=3; r++) {
+            document.getElementById(`c${courtNum}r${r}a`).value = '';
+            document.getElementById(`c${courtNum}r${r}b`).value = '';
+        }
+        save(); renderPlayers();
+    }
+
+    function clearData() { if(confirm("Reset all rankings?")) { players = []; save(); location.reload(); } }
 </script>
 
 </body>
