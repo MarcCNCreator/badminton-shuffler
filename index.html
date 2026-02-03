@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Badminton Pro Manager</title>
+    <title>Badminton Pro: Fair Play</title>
     <style>
         :root { --primary: #1a73e8; --success: #34a853; --danger: #d93025; --bg: #f8f9fa; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; color: #3c4043; }
@@ -28,15 +28,20 @@
         .court { background: #fff; padding: 15px; border-radius: 15px; border: 2px solid #e8f0fe; text-align: center; margin-bottom: 15px; }
         .player-tag { display: inline-block; background: #e8f0fe; padding: 5px 12px; border-radius: 10px; font-size: 0.9em; font-weight: 600; color: #1a73e8; }
         
-        /* Collapsible Layer */
+        .section-title { font-size: 0.8em; font-weight: bold; color: #70757a; margin-top: 25px; text-transform: uppercase; letter-spacing: 1px; }
+        .resting-box { background: #fff3e0; border: 1px solid #ffe0b2; padding: 12px; border-radius: 12px; margin-bottom: 20px; min-height: 40px; }
+        
         .manual-layer { border: 1px solid #ddd; border-radius: 15px; margin-top: 20px; overflow: hidden; }
         .layer-header { background: #f1f3f4; padding: 12px; font-size: 0.85em; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; }
         .layer-content { padding: 15px; display: none; background: #fff; }
 
-        .score-row { display: grid; grid-template-columns: 1fr 20px 1fr 20px 1fr 20px 1fr; gap: 5px; align-items: center; margin-top: 10px; }
-        .score-row input { width: 35px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 5px; }
+        .score-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 10px; }
+        .score-row input { width: 50px; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 8px; }
         
-        .history-item { background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 8px; font-size: 0.85em; display: flex; justify-content: space-between; align-items: center; }
+        .history-item { background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 8px; font-size: 0.85em; display: flex; justify-content: space-between; }
+        .player-item { display: flex; justify-content: space-between; background: #fff; padding: 12px; margin-bottom: 5px; border-radius: 10px; border: 1px solid #eee; align-items: center; }
+        .stats-sub { font-size: 0.7em; color: #888; display: block; }
+        
         #loader { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); display:none; flex-direction:column; justify-content:center; align-items:center; z-index:20; border-radius:20px; }
     </style>
 </head>
@@ -46,12 +51,12 @@
     <div class="animation-box">
         <div class="sparkle">✨</div>
         <div class="players-wrap"><div class="player-left">🧑‍🏸</div><div class="player-right">🏸👧</div></div>
-        <h3 style="margin:0; color:#1a73e8;">Matches Live!</h3>
+        <h3 style="margin:0; color:#1a73e8;">Let's Play!</h3>
     </div>
 </div>
 
 <div class="container">
-    <div id="loader">🏸<br><b>Shuffling...</b></div>
+    <div id="loader">🏸<br><b>Selecting Fair Teams...</b></div>
     <h2>Badminton Match Pro</h2>
     
     <div style="margin-bottom: 20px;">
@@ -59,11 +64,14 @@
         <button class="btn btn-add" onclick="addPlayers()">Add to Queue</button>
     </div>
 
-    <button class="btn btn-shuffle" onclick="startShuffle()">Smart Shuffle</button>
+    <button class="btn btn-shuffle" onclick="startShuffle()">Shuffle (Priority: Low Played)</button>
+
+    <div class="section-title">🏖️ Resting This Round</div>
+    <div id="restingList" class="resting-box">No one is resting yet.</div>
 
     <div id="courts">
-        <div id="court1Box" class="court"><div id="c1_display">Court 1 Ready</div><div id="c1_score_ui"></div></div>
-        <div id="court2Box" class="court"><div id="c2_display">Court 2 Ready</div><div id="c2_score_ui"></div></div>
+        <div id="court1Box" class="court"><div id="c1_display">Court 1</div><div id="c1_score_ui"></div></div>
+        <div id="court2Box" class="court"><div id="c2_display">Court 2</div><div id="c2_score_ui"></div></div>
     </div>
 
     <div class="manual-layer">
@@ -77,25 +85,25 @@
                 <input type="text" id="manB1" placeholder="Team B P1"> <input type="text" id="manB2" placeholder="Team B P2">
             </div>
             <div class="score-row">
-                <input type="number" id="manG1A" placeholder="R1">:<input type="number" id="manG1B" placeholder="R1">
-                <input type="number" id="manG2A" placeholder="R2">:<input type="number" id="manG2B" placeholder="R2">
-                <input type="number" id="manG3A" placeholder="R3">:<input type="number" id="manG3B" placeholder="R3">
+                <input type="number" id="manGA" placeholder="A"> : <input type="number" id="manGB" placeholder="B">
             </div>
             <button class="btn btn-add" onclick="submitManual()">Log Match Result</button>
         </div>
     </div>
 
-    <div style="font-size: 0.8em; font-weight: bold; color: #70757a; margin-top: 25px;">MATCH HISTORY</div>
-    <div id="historyLog"></div>
-
-    <div style="font-size: 0.8em; font-weight: bold; color: #70757a; margin-top: 25px;">LEADERBOARD</div>
+    <div class="section-title">🏆 Leaderboard</div>
     <div id="playerPool" style="margin-top:10px;"></div>
+
+    <div class="section-title">📜 History</div>
+    <div id="historyLog"></div>
+    
+    <button onclick="clearData()" style="width:100%; background:none; border:none; color:#bbb; font-size:0.75em; cursor:pointer; margin-top:30px; text-decoration: underline;">Reset All Data</button>
 </div>
 
 <script>
+    // Data Structure: { name: "", points: 0, played: 0 }
     let players = JSON.parse(localStorage.getItem('badmintonData')) || [];
     let history = JSON.parse(localStorage.getItem('badmintonHistory')) || [];
-    let audioCtx = null;
 
     window.onload = () => { renderPlayers(); renderHistory(); };
 
@@ -107,7 +115,9 @@
     function addPlayers() {
         const input = document.getElementById('nameInput');
         const names = input.value.split(',').map(n => n.trim()).filter(n => n !== "");
-        names.forEach(n => { if (!players.find(p => p.name === n)) players.push({ name: n, points: 0 }); });
+        names.forEach(n => { 
+            if (!players.find(p => p.name === n)) players.push({ name: n, points: 0, played: 0 }); 
+        });
         input.value = ''; save(); renderPlayers();
     }
 
@@ -119,8 +129,12 @@
     function renderPlayers() {
         const sorted = [...players].sort((a,b) => b.points - a.points);
         document.getElementById('playerPool').innerHTML = sorted.map(p => `
-            <div style="display:flex; justify-content:space-between; background:#fff; padding:10px; margin-bottom:5px; border-radius:10px; border:1px solid #eee;">
-                <span><b>${p.name}</b></span><span>${p.points} Pts</span>
+            <div class="player-item">
+                <div>
+                    <b>${p.name}</b>
+                    <span class="stats-sub">Matches Played: ${p.played || 0}</span>
+                </div>
+                <span style="font-weight:bold; color:var(--primary);">${p.points} Pts</span>
             </div>
         `).join('');
     }
@@ -128,7 +142,7 @@
     function renderHistory() {
         document.getElementById('historyLog').innerHTML = history.slice(-5).reverse().map((h, i) => `
             <div class="history-item">
-                <div><b>${h.winner}</b> won vs ${h.loser}<br><small>${h.score} | ${h.date}</small></div>
+                <div><b>${h.winner}</b> def. ${h.loser}<br><small>${h.score} | ${h.date}</small></div>
                 <div style="color:#ccc; cursor:pointer;" onclick="deleteHistory(${history.length - 1 - i})">🗑️</div>
             </div>
         `).join('');
@@ -137,10 +151,30 @@
     function startShuffle() {
         if (players.length < 4) return alert("Need 4 players!");
         document.getElementById('loader').style.display = 'flex';
+        
         setTimeout(() => {
-            let pool = [...players].sort((a,b) => b.points - a.points);
-            showMatch(1, pool.slice(0, 4));
-            if (pool.length >= 8) showMatch(2, pool.slice(4, 8));
+            // NEW LOGIC: Sort by "Played" first, then "Points" (ascending)
+            // This ensures people who played the least go on court first.
+            let pool = [...players].sort((a,b) => (a.played || 0) - (b.played || 0) || a.points - b.points);
+            
+            let onCourt = [];
+            let match1 = pool.slice(0, 4);
+            onCourt.push(...match1.map(p => p.name));
+            showMatch(1, match1);
+
+            let match2 = [];
+            if (pool.length >= 8) {
+                match2 = pool.slice(4, 8);
+                onCourt.push(...match2.map(p => p.name));
+                showMatch(2, match2);
+            }
+
+            // Calculate Resting List
+            let resting = players.filter(p => !onCourt.includes(p.name)).map(p => p.name);
+            document.getElementById('restingList').innerHTML = resting.length > 0 ? 
+                resting.map(name => `<span class="player-tag" style="background:#ffe0b2; color:#e65100;">${name}</span>`).join('') : 
+                "Everyone is playing!";
+
             document.getElementById('loader').style.display = 'none';
             document.getElementById('highFiveOverlay').style.display = 'flex';
             setTimeout(() => { document.getElementById('highFiveOverlay').style.display = 'none'; }, 2000);
@@ -148,71 +182,70 @@
     }
 
     function showMatch(court, pList) {
-        const teamA = [pList[0], pList[3]], teamB = [pList[1], pList[2]];
-        const tAName = `${teamA[0].name} & ${teamA[1].name}`, tBName = `${teamB[0].name} & ${teamB[1].name}`;
+        let s = [...pList].sort(() => Math.random() - 0.5);
+        const tAName = `${s[0].name} & ${s[1].name}`, tBName = `${s[2].name} & ${s[3].name}`;
+        
         document.getElementById(`c${court}_display`).innerHTML = `<span class="player-tag">${tAName}</span> vs <span class="player-tag">${tBName}</span>`;
         document.getElementById(`c${court}_score_ui`).innerHTML = `
             <div class="score-row">
-                <input type="number" id="c${court}R1A">:<input type="number" id="c${court}R1B">
-                <input type="number" id="c${court}R2A">:<input type="number" id="c${court}R2B">
-                <input type="number" id="c${court}R3A">:<input type="number" id="c${court}R3B">
+                <input type="number" id="c${court}GA" placeholder="A"> : <input type="number" id="c${court}GB" placeholder="B">
             </div>
-            <button class="btn btn-add" style="font-size:0.8em;" onclick="logResult('${tAName}', '${tBName}', ${court})">Save Best of 3</button>`;
+            <button class="btn btn-add" style="font-size:0.8em;" onclick="logResult('${tAName}', '${tBName}', ${court})">Save Score</button>`;
     }
 
     function logResult(tA, tB, court) {
-        const scores = [
-            [parseInt(document.getElementById(`c${court}R1A`).value) || 0, parseInt(document.getElementById(`c${court}R1B`).value) || 0],
-            [parseInt(document.getElementById(`c${court}R2A`).value) || 0, parseInt(document.getElementById(`c${court}R2B`).value) || 0],
-            [parseInt(document.getElementById(`c${court}R3A`).value) || 0, parseInt(document.getElementById(`c${court}R3B`).value) || 0]
-        ];
-        processMatch(tA, tB, scores);
+        const sa = parseInt(document.getElementById(`c${court}GA`).value) || 0;
+        const sb = parseInt(document.getElementById(`c${court}GB`).value) || 0;
+        processMatch(tA, tB, sa, sb);
         document.getElementById(`c${court}_score_ui`).innerHTML = "✓ Logged";
     }
 
     function submitManual() {
         const tA = `${document.getElementById('manA1').value} & ${document.getElementById('manA2').value}`;
         const tB = `${document.getElementById('manB1').value} & ${document.getElementById('manB2').value}`;
-        const scores = [
-            [parseInt(document.getElementById('manG1A').value) || 0, parseInt(document.getElementById('manG1B').value) || 0],
-            [parseInt(document.getElementById('manG2A').value) || 0, parseInt(document.getElementById('manG2B').value) || 0],
-            [parseInt(document.getElementById('manG3A').value) || 0, parseInt(document.getElementById('manG3B').value) || 0]
-        ];
-        processMatch(tA, tB, scores);
+        const sa = parseInt(document.getElementById('manGA').value) || 0;
+        const sb = parseInt(document.getElementById('manGB').value) || 0;
+        processMatch(tA, tB, sa, sb);
         alert("Manual Match Logged!");
         toggleLayer('manualLog');
     }
 
-    function processMatch(tA, tB, scores) {
-        let aRounds = 0, bRounds = 0;
-        scores.forEach(s => { if(s[0] > s[1]) aRounds++; else if(s[1] > s[0]) bRounds++; });
+    function processMatch(tA, tB, sa, sb) {
+        if (sa === 0 && sb === 0) return alert("Enter scores!");
+        let winner = sa > sb ? tA : tB;
+        let loser = sa > sb ? tB : tA;
         
-        let winner = aRounds > bRounds ? tA : tB;
-        let loser = aRounds > bRounds ? tB : tA;
-        let scoreStr = scores.map(s => `${s[0]}-${s[1]}`).filter(s => s !== "0-0").join(", ");
+        history.push({ winner, loser, score: `${sa}-${sb}`, date: new Date().toLocaleTimeString() });
         
-        history.push({ winner, loser, score: scoreStr, date: new Date().toLocaleTimeString() });
-        
+        // Update Points and Match Count
         [tA, tB].forEach(team => {
             team.split('&').map(n => n.trim()).forEach(name => {
                 let p = players.find(pl => pl.name === name);
-                if (p) p.points += (team === winner ? 3 : 1);
+                if (p) {
+                    p.points += (team === winner ? 3 : 1);
+                    p.played = (p.played || 0) + 1;
+                }
             });
         });
         save(); renderPlayers(); renderHistory();
     }
 
     function deleteHistory(index) {
-        if (!confirm("Remove match and revert points?")) return;
+        if (!confirm("Revert points and match counts?")) return;
         const m = history[index];
         [m.winner, m.loser].forEach(team => {
             team.split('&').map(n => n.trim()).forEach(name => {
                 let p = players.find(pl => pl.name === name);
-                if (p) p.points -= (team === m.winner ? 3 : 1);
+                if (p) {
+                    p.points -= (team === m.winner ? 3 : 1);
+                    p.played = Math.max(0, (p.played || 0) - 1);
+                }
             });
         });
         history.splice(index, 1); save(); renderPlayers(); renderHistory();
     }
+
+    function clearData() { if(confirm("Reset everything?")) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
 </html>
