@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Badminton Master Tool</title>
+    <title>Badminton Pro Manager</title>
     <style>
         :root { --primary: #1a73e8; --success: #34a853; --danger: #d93025; --bg: #f8f9fa; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; color: #3c4043; }
@@ -11,34 +11,33 @@
         
         /* High-Five Pop-up */
         #highFiveOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(4px); }
-        .animation-box { background: white; padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
+        .animation-box { background: white; padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); position: relative; }
         .players-wrap { display: flex; justify-content: center; gap: 20px; font-size: 60px; }
         .player-left { animation: slideRight 0.6s forwards ease-out; }
         .player-right { animation: slideLeft 0.6s forwards ease-out; }
         @keyframes slideRight { 0% { transform: translateX(-100px); } 100% { transform: translateX(0px); } }
         @keyframes slideLeft { 0% { transform: translateX(100px); } 100% { transform: translateX(0px); } }
         .sparkle { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; animation: pop 0.3s 0.6s both; opacity: 0; }
-        @keyframes pop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; } }
+        @keyframes pop { 0% { scale: 0; opacity: 0; } 100% { scale: 1.5; opacity: 1; } }
 
         /* UI Elements */
-        .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-        input { padding: 12px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; }
         .btn { padding: 12px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-add { background: var(--success); color: white; }
-        .btn-shuffle { background: var(--primary); color: white; width: 100%; margin-bottom: 20px; font-size: 1.1em; box-shadow: 0 4px 10px rgba(26, 115, 232, 0.2); }
+        .btn-add { background: var(--success); color: white; width: 100%; margin-top: 10px; }
+        .btn-shuffle { background: var(--primary); color: white; width: 100%; font-size: 1.1em; margin-bottom: 20px; }
         
         .court { background: #fff; padding: 15px; border-radius: 15px; border: 2px solid #e8f0fe; text-align: center; margin-bottom: 15px; }
-        .player-tag { display: inline-block; background: #e8f0fe; padding: 5px 12px; border-radius: 10px; font-size: 0.9em; margin: 3px; font-weight: 600; color: #1a73e8; }
+        .player-tag { display: inline-block; background: #e8f0fe; padding: 5px 12px; border-radius: 10px; font-size: 0.9em; font-weight: 600; color: #1a73e8; }
         
-        .section-title { font-size: 0.8em; font-weight: bold; color: #70757a; margin: 25px 0 10px; text-transform: uppercase; letter-spacing: 1.5px; }
+        /* Collapsible Layer */
+        .manual-layer { border: 1px solid #ddd; border-radius: 15px; margin-top: 20px; overflow: hidden; }
+        .layer-header { background: #f1f3f4; padding: 12px; font-size: 0.85em; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; }
+        .layer-content { padding: 15px; display: none; background: #fff; }
+
+        .score-row { display: grid; grid-template-columns: 1fr 20px 1fr 20px 1fr 20px 1fr; gap: 5px; align-items: center; margin-top: 10px; }
+        .score-row input { width: 35px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 5px; }
+        
         .history-item { background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 8px; font-size: 0.85em; display: flex; justify-content: space-between; align-items: center; }
-        .manual-log-box { background: #f1f3f4; padding: 15px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #ccc; }
-        .score-row { display: grid; grid-template-columns: 1fr 30px 1fr; gap: 5px; margin-top: 5px; align-items: center; }
-        .score-row input { padding: 5px; text-align: center; font-size: 12px; }
-        .trash-btn { color: #ccc; cursor: pointer; padding: 5px; transition: color 0.2s; }
-        .trash-btn:hover { color: var(--danger); }
-        .player-item { display: flex; justify-content: space-between; background: #fff; padding: 12px; margin-bottom: 5px; border-radius: 10px; border: 1px solid #eee; }
-        #loader { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); display:none; flex-direction:column; justify-content:center; align-items:center; z-index:20; border-radius:20px; }
+        #loader { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); display:none; flex-direction:column; justify-content:center; align-items:center; z-index:20; border-radius:20px; }
     </style>
 </head>
 <body>
@@ -47,46 +46,50 @@
     <div class="animation-box">
         <div class="sparkle">✨</div>
         <div class="players-wrap"><div class="player-left">🧑‍🏸</div><div class="player-right">🏸👧</div></div>
-        <h3 style="margin:0; color:#1a73e8;">Good Luck!</h3>
+        <h3 style="margin:0; color:#1a73e8;">Matches Live!</h3>
     </div>
 </div>
 
 <div class="container">
-    <div id="loader">🏸<br><b>Shuffling Players...</b></div>
+    <div id="loader">🏸<br><b>Shuffling...</b></div>
     <h2>Badminton Match Pro</h2>
     
-    <div class="input-group">
-        <input type="text" id="nameInput" placeholder="Names (e.g. John, Mary, Pete)">
+    <div style="margin-bottom: 20px;">
+        <input type="text" id="nameInput" placeholder="Add Names (Ali, Bob, Ken)" style="width: 100%; box-sizing: border-box; padding: 12px; border-radius: 12px; border: 2px solid #eee; outline: none;">
         <button class="btn btn-add" onclick="addPlayers()">Add to Queue</button>
     </div>
 
-    <button class="btn btn-shuffle" onclick="startShuffle()">Shuffle Courts</button>
+    <button class="btn btn-shuffle" onclick="startShuffle()">Smart Shuffle</button>
 
     <div id="courts">
         <div id="court1Box" class="court"><div id="c1_display">Court 1 Ready</div><div id="c1_score_ui"></div></div>
         <div id="court2Box" class="court"><div id="c2_display">Court 2 Ready</div><div id="c2_score_ui"></div></div>
     </div>
 
-    <div class="section-title">Manual Result Entry</div>
-    <div class="manual-log-box">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
-            <input type="text" id="manA1" placeholder="Team A P1"> <input type="text" id="manA2" placeholder="Team A P2">
-            <input type="text" id="manB1" placeholder="Team B P1"> <input type="text" id="manB2" placeholder="Team B P2">
+    <div class="manual-layer">
+        <div class="layer-header" onclick="toggleLayer('manualLog')">
+            <span>⚙️ MANUAL RESULT ENTRY</span>
+            <span>▼</span>
         </div>
-        <div class="score-row">
-            <input type="number" id="manG1A" placeholder="G1"> <span>-</span> <input type="number" id="manG1B" placeholder="G1">
-            <input type="number" id="manG2A" placeholder="G2"> <span>-</span> <input type="number" id="manG2B" placeholder="G2">
+        <div id="manualLog" class="layer-content">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:10px;">
+                <input type="text" id="manA1" placeholder="Team A P1"> <input type="text" id="manA2" placeholder="Team A P2">
+                <input type="text" id="manB1" placeholder="Team B P1"> <input type="text" id="manB2" placeholder="Team B P2">
+            </div>
+            <div class="score-row">
+                <input type="number" id="manG1A" placeholder="R1">:<input type="number" id="manG1B" placeholder="R1">
+                <input type="number" id="manG2A" placeholder="R2">:<input type="number" id="manG2B" placeholder="R2">
+                <input type="number" id="manG3A" placeholder="R3">:<input type="number" id="manG3B" placeholder="R3">
+            </div>
+            <button class="btn btn-add" onclick="submitManual()">Log Match Result</button>
         </div>
-        <button class="btn btn-add" style="width:100%; margin-top:10px; font-size:0.85em;" onclick="submitManual()">Submit Manual Result</button>
     </div>
 
-    <div class="section-title">Recent Matches</div>
+    <div style="font-size: 0.8em; font-weight: bold; color: #70757a; margin-top: 25px;">MATCH HISTORY</div>
     <div id="historyLog"></div>
 
-    <div class="section-title">Global Leaderboard</div>
-    <div id="playerPool"></div>
-    
-    <button onclick="clearData()" style="width:100%; background:none; border:none; color:#bbb; font-size:0.75em; cursor:pointer; margin-top:30px; text-decoration: underline;">Clear All Database</button>
+    <div style="font-size: 0.8em; font-weight: bold; color: #70757a; margin-top: 25px;">LEADERBOARD</div>
+    <div id="playerPool" style="margin-top:10px;"></div>
 </div>
 
 <script>
@@ -96,19 +99,9 @@
 
     window.onload = () => { renderPlayers(); renderHistory(); };
 
-    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-    
-    function playSound() {
-        initAudio();
-        const notes = [523, 659, 783, 1046];
-        notes.forEach((f, i) => {
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            osc.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.1));
-            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + (i * 0.1) + 0.5);
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.start(audioCtx.currentTime + (i * 0.1)); osc.stop(audioCtx.currentTime + (i * 0.1) + 0.5);
-        });
+    function toggleLayer(id) {
+        const el = document.getElementById(id);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
     }
 
     function addPlayers() {
@@ -126,38 +119,19 @@
     function renderPlayers() {
         const sorted = [...players].sort((a,b) => b.points - a.points);
         document.getElementById('playerPool').innerHTML = sorted.map(p => `
-            <div class="player-item"><span><b>${p.name}</b></span><span>${p.points} Pts</span></div>
+            <div style="display:flex; justify-content:space-between; background:#fff; padding:10px; margin-bottom:5px; border-radius:10px; border:1px solid #eee;">
+                <span><b>${p.name}</b></span><span>${p.points} Pts</span>
+            </div>
         `).join('');
     }
 
     function renderHistory() {
         document.getElementById('historyLog').innerHTML = history.slice(-5).reverse().map((h, i) => `
             <div class="history-item">
-                <div>
-                    <b>${h.winner} won</b> vs ${h.loser}<br>
-                    <small style="color:grey">${h.score} | ${h.date}</small>
-                </div>
-                <div class="trash-btn" onclick="deleteHistory(${history.length - 1 - i})">🗑️</div>
+                <div><b>${h.winner}</b> won vs ${h.loser}<br><small>${h.score} | ${h.date}</small></div>
+                <div style="color:#ccc; cursor:pointer;" onclick="deleteHistory(${history.length - 1 - i})">🗑️</div>
             </div>
         `).join('');
-    }
-
-    function deleteHistory(index) {
-        if (!confirm("Remove this match and revert points?")) return;
-        const match = history[index];
-        
-        // Revert points: deduct 3 from winners, 1 from losers
-        match.winner.split('&').map(n => n.trim()).forEach(name => {
-            let p = players.find(pl => pl.name === name);
-            if (p) p.points -= 3;
-        });
-        match.loser.split('&').map(n => n.trim()).forEach(name => {
-            let p = players.find(pl => pl.name === name);
-            if (p) p.points -= 1;
-        });
-
-        history.splice(index, 1);
-        save(); renderPlayers(); renderHistory();
     }
 
     function startShuffle() {
@@ -169,54 +143,55 @@
             if (pool.length >= 8) showMatch(2, pool.slice(4, 8));
             document.getElementById('loader').style.display = 'none';
             document.getElementById('highFiveOverlay').style.display = 'flex';
-            playSound();
             setTimeout(() => { document.getElementById('highFiveOverlay').style.display = 'none'; }, 2000);
         }, 1200);
     }
 
     function showMatch(court, pList) {
         const teamA = [pList[0], pList[3]], teamB = [pList[1], pList[2]];
-        document.getElementById(`c${court}_display`).innerHTML = `
-            <span class="player-tag">${teamA[0].name} & ${teamA[1].name}</span> vs 
-            <span class="player-tag">${teamB[0].name} & ${teamB[1].name}</span>`;
+        const tAName = `${teamA[0].name} & ${teamA[1].name}`, tBName = `${teamB[0].name} & ${teamB[1].name}`;
+        document.getElementById(`c${court}_display`).innerHTML = `<span class="player-tag">${tAName}</span> vs <span class="player-tag">${tBName}</span>`;
         document.getElementById(`c${court}_score_ui`).innerHTML = `
             <div class="score-row">
-                <input type="number" id="c${court}G1A" placeholder="G1"> - <input type="number" id="c${court}G1B" placeholder="G1">
-                <input type="number" id="c${court}G2A" placeholder="G2"> - <input type="number" id="c${court}G2B" placeholder="G2">
+                <input type="number" id="c${court}R1A">:<input type="number" id="c${court}R1B">
+                <input type="number" id="c${court}R2A">:<input type="number" id="c${court}R2B">
+                <input type="number" id="c${court}R3A">:<input type="number" id="c${court}R3B">
             </div>
-            <button class="btn btn-add" style="width:100%; margin-top:10px; font-size:0.8em;" 
-            onclick="logResult('${teamA[0].name} & ${teamA[1].name}', '${teamB[0].name} & ${teamB[1].name}', ${court})">Save Result</button>`;
+            <button class="btn btn-add" style="font-size:0.8em;" onclick="logResult('${tAName}', '${tBName}', ${court})">Save Best of 3</button>`;
     }
 
     function logResult(tA, tB, court) {
-        const g1a = parseInt(document.getElementById(`c${court}G1A`).value) || 0;
-        const g1b = parseInt(document.getElementById(`c${court}G1B`).value) || 0;
-        const g2a = parseInt(document.getElementById(`c${court}G2A`).value) || 0;
-        const g2b = parseInt(document.getElementById(`c${court}G2B`).value) || 0;
-        if (g1a === 0 && g1b === 0) return alert("Enter scores!");
-        processMatch(tA, tB, g1a, g1b, g2a, g2b);
+        const scores = [
+            [parseInt(document.getElementById(`c${court}R1A`).value) || 0, parseInt(document.getElementById(`c${court}R1B`).value) || 0],
+            [parseInt(document.getElementById(`c${court}R2A`).value) || 0, parseInt(document.getElementById(`c${court}R2B`).value) || 0],
+            [parseInt(document.getElementById(`c${court}R3A`).value) || 0, parseInt(document.getElementById(`c${court}R3B`).value) || 0]
+        ];
+        processMatch(tA, tB, scores);
         document.getElementById(`c${court}_score_ui`).innerHTML = "✓ Logged";
     }
 
     function submitManual() {
         const tA = `${document.getElementById('manA1').value} & ${document.getElementById('manA2').value}`;
         const tB = `${document.getElementById('manB1').value} & ${document.getElementById('manB2').value}`;
-        const g1a = parseInt(document.getElementById('manG1A').value) || 0;
-        const g1b = parseInt(document.getElementById('manG1B').value) || 0;
-        const g2a = parseInt(document.getElementById('manG2A').value) || 0;
-        const g2b = parseInt(document.getElementById('manG2B').value) || 0;
-        if (g1a === 0 && g1b === 0) return alert("Enter scores!");
-        processMatch(tA, tB, g1a, g1b, g2a, g2b);
+        const scores = [
+            [parseInt(document.getElementById('manG1A').value) || 0, parseInt(document.getElementById('manG1B').value) || 0],
+            [parseInt(document.getElementById('manG2A').value) || 0, parseInt(document.getElementById('manG2B').value) || 0],
+            [parseInt(document.getElementById('manG3A').value) || 0, parseInt(document.getElementById('manG3B').value) || 0]
+        ];
+        processMatch(tA, tB, scores);
         alert("Manual Match Logged!");
+        toggleLayer('manualLog');
     }
 
-    function processMatch(tA, tB, g1a, g1b, g2a, g2b) {
-        let aWins = (g1a > g1b ? 1 : 0) + (g2a > g2b ? 1 : 0);
-        let bWins = (g1b > g1a ? 1 : 0) + (g2b > g2a ? 1 : 0);
-        let winner = aWins > bWins ? tA : tB;
-        let loser = aWins > bWins ? tB : tA;
+    function processMatch(tA, tB, scores) {
+        let aRounds = 0, bRounds = 0;
+        scores.forEach(s => { if(s[0] > s[1]) aRounds++; else if(s[1] > s[0]) bRounds++; });
         
-        history.push({ winner, loser, score: `${g1a}-${g1b}, ${g2a}-${g2b}`, date: new Date().toLocaleTimeString() });
+        let winner = aRounds > bRounds ? tA : tB;
+        let loser = aRounds > bRounds ? tB : tA;
+        let scoreStr = scores.map(s => `${s[0]}-${s[1]}`).filter(s => s !== "0-0").join(", ");
+        
+        history.push({ winner, loser, score: scoreStr, date: new Date().toLocaleTimeString() });
         
         [tA, tB].forEach(team => {
             team.split('&').map(n => n.trim()).forEach(name => {
@@ -224,11 +199,20 @@
                 if (p) p.points += (team === winner ? 3 : 1);
             });
         });
-        
         save(); renderPlayers(); renderHistory();
     }
 
-    function clearData() { if(confirm("Reset everything?")) { localStorage.clear(); location.reload(); } }
+    function deleteHistory(index) {
+        if (!confirm("Remove match and revert points?")) return;
+        const m = history[index];
+        [m.winner, m.loser].forEach(team => {
+            team.split('&').map(n => n.trim()).forEach(name => {
+                let p = players.find(pl => pl.name === name);
+                if (p) p.points -= (team === m.winner ? 3 : 1);
+            });
+        });
+        history.splice(index, 1); save(); renderPlayers(); renderHistory();
+    }
 </script>
 </body>
 </html>
